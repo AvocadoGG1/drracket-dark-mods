@@ -9,6 +9,7 @@ A dark window frame for DrRacket on Windows.
 | Dropdown menus | plugin (uxtheme dark mode) | no |
 | Editor scrollbars | plugin (`DarkMode_Explorer` window theme) | no |
 | Toolbar, tabs, status bar | `patch.rkt` patches racket/gui | **yes**, once |
+| Dialogs: title bars, buttons, check boxes, radio buttons | `patch.rkt` | **yes**, once |
 
 The editor colors themselves come from DrRacket's color schemes.
 The [`drracket-rainbow`](../drracket-rainbow) package adds a matching one.
@@ -18,6 +19,8 @@ The [`drracket-rainbow`](../drracket-rainbow) package adds a matching one.
 On Windows, racket/gui draws panels using the Windows "button face" system colors, and a plugin can't change those.
 The patch adds a small module, `dark-chrome.rkt`, to racket/gui and changes 4 files to use it.
 It swaps in the dark colors and an optional custom font.
+It also gives dialogs dark title bars and dark push buttons.
+Check boxes and radio buttons switch to classic drawing, because Windows' themed versions always draw black text.
 
 - By default it only affects DrRacket, not other racket/gui programs (see `drracket-only` under Settings).
 - The original files are backed up to `gui-lib-patch/backup/` before anything changes.
@@ -76,7 +79,8 @@ For example, to use the Minecraft-style [Monocraft](https://github.com/IdreesInc
 
 ## Known limits
 
-- Native widgets in dialogs (push buttons, text fields, check boxes) keep the light Windows look.
+- Text fields, lists and drop-downs in dialogs keep the light Windows look.
+- Check boxes and radio buttons use the classic Windows style so their labels stay readable.
 - Dropdown menu items use the Windows menu font.
 - The menu bar and dark dropdowns rely on undocumented Windows behavior, so a Windows update could break them.
   If that happens, set `enabled` to `#f`.

@@ -1,0 +1,10 @@
+# Racket build output
+compiled/
+doc/
+
+# Local copies of Racket's own files, made by patch.rkt
+drracket-dark-windows/gui-lib-patch/backup/
+
+# Logs
+*.log
+patch-log.txt

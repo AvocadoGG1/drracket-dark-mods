@@ -4,11 +4,12 @@ Rainbow brackets, VS Code-style syntax colors, and a dark window frame for DrRac
 
 ![DrRacket with rainbow brackets and a dark window](screenshots/demo.png)
 
-This repo holds two independent packages. Install either one or both.
+This repo holds three independent packages. Install any combination.
 
 | Package | What it does | Platforms |
 |---|---|---|
 | [`drracket-rainbow`](drracket-rainbow) | Rainbow brackets, more syntax roles, "Monokai Rainbow" color scheme | Windows, macOS, Linux |
+| [`drracket-background`](drracket-background) | A faded background image behind the editor | Windows, macOS, Linux |
 | [`drracket-dark-windows`](drracket-dark-windows) | Dark title bar, menu bar, toolbar, tabs and scrollbars | Windows only |
 
 Tested with Racket 9.3 on Windows 11.
@@ -41,6 +42,30 @@ That setting appears when DrRacket is in dark mode (**Background > White on Blac
 - Only the token *color* changes, so indentation and paren matching behave exactly as before.
 - **Check Syntax** paints its own identifier colors on top: imported names turn cyan and local names white.
   Editing the file brings the rainbow colors back.
+
+## drracket-background
+
+Put a picture behind your code, like VS Code's background-image extensions.
+The picture is faded into the color scheme's background and stays fixed while the text scrolls over it.
+
+![A faded background image behind the editor](screenshots/background.png)
+
+### Install
+
+```bash
+raco pkg install "https://github.com/AvocadoGG1/drracket-dark-mods.git?path=drracket-background"
+```
+
+Restart DrRacket, then open **Edit > Preferences > Background Image**.
+
+| Setting | Options |
+|---|---|
+| Image | Any PNG, JPEG, GIF or BMP file |
+| Opacity | 0 to 100%; 15 to 30% keeps code readable |
+| Placement | Fill (crop to cover), Fit, Bottom right, Center |
+| REPL | Also show the picture behind the interactions window |
+
+Changes apply immediately, with no restart needed.
 
 ## drracket-dark-windows
 

@@ -9,7 +9,9 @@
          dark-sys-color
          dark-chrome-brush
          dark-chrome-font-face
-         dark-chrome-static-color)
+         dark-chrome-static-color
+         dark-chrome-style-control!
+         dark-chrome-style-window!)
 
 (define config
   (with-handlers ([(λ (e) #t) (λ (e) #f)])
@@ -68,3 +70,76 @@
          (SetTextColor hdc fg)
          (SetBkColor hdc bg)
          (cast brush _pointer _intptr))))
+
+;; ---------------------------------------------------------------------------
+;; Native buttons. Themed check boxes and radio buttons always draw black text,
+;; so they get classic (unthemed) drawing, which uses the WM_CTLCOLORSTATIC text
+;; color above. Push buttons get Windows' own dark button theme.
+
+(define user32 (ffi-lib "user32.dll"))
+(define kernel32 (ffi-lib "kernel32.dll"))
+(define uxtheme (ffi-lib "uxtheme.dll"))
+(define GetClassNameW
+  (get-ffi-obj "GetClassNameW" user32 (_fun #:abi winapi _pointer _pointer _int -> _int)))
+(define GetWindowLongW
+  (get-ffi-obj "GetWindowLongW" user32 (_fun #:abi winapi _pointer _int -> _int32)))
+(define SetWindowTheme
+  (get-ffi-obj "SetWindowTheme" uxtheme
+               (_fun #:abi winapi _pointer _string/utf-16 _string/utf-16 -> _int32)))
+(define LoadLibraryW
+  (get-ffi-obj "LoadLibraryW" kernel32 (_fun #:abi winapi _string/utf-16 -> _pointer)))
+(define GetProcAddress
+  (get-ffi-obj "GetProcAddress" kernel32 (_fun #:abi winapi _pointer _intptr -> _fpointer)))
+
+;; undocumented uxtheme exports, by ordinal (stable since Windows 10 1903)
+(define (uxtheme-ord n type)
+  (with-handlers ([(λ (e) #t) (λ (e) #f)])
+    (define p (GetProcAddress (LoadLibraryW "uxtheme.dll") n))
+    (and p (cast p _fpointer type))))
+(define allow-dark-mode-for-window
+  (and dark-chrome-enabled? (uxtheme-ord 133 (_fun #:abi winapi _pointer _bool -> _bool))))
+(when dark-chrome-enabled?
+  (define set-preferred-app-mode (uxtheme-ord 135 (_fun #:abi winapi _int -> _int)))
+  (when set-preferred-app-mode (void (set-preferred-app-mode 2)))) ; ForceDark
+
+(define (class-name hwnd)
+  (define buf (malloc 128 'raw))
+  (define n (GetClassNameW hwnd buf 64))
+  (define s (if (> n 0) (cast buf _pointer _string/utf-16) ""))
+  (free buf)
+  s)
+
+(define GWL_STYLE -16)
+
+(define (dark-chrome-style-control! hwnd)
+  (when dark-chrome-enabled?
+    (with-handlers ([(λ (e) #t) void])
+      (when (string-ci=? (class-name hwnd) "PLTBUTTON")
+        (define kind (bitwise-and (GetWindowLongW hwnd GWL_STYLE) #xF))
+        (cond
+          [(memv kind '(0 1)) ; BS_PUSHBUTTON, BS_DEFPUSHBUTTON
+           (when allow-dark-mode-for-window (allow-dark-mode-for-window hwnd #t))
+           (SetWindowTheme hwnd "DarkMode_Explorer" #f)]
+          [else ; check boxes, radio buttons, group boxes
+           (SetWindowTheme hwnd "" "")])))))
+
+;; Top-level windows (frames and dialogs): dark title bar
+(define dwmapi (with-handlers ([(λ (e) #t) (λ (e) #f)]) (ffi-lib "dwmapi.dll")))
+(define DwmSetWindowAttribute
+  (and dwmapi (get-ffi-obj "DwmSetWindowAttribute" dwmapi
+                           (_fun #:abi winapi _pointer _uint32 _pointer _uint32 -> _int32)
+                           (λ () #f))))
+(define WS_CHILD #x40000000)
+
+(define (dark-chrome-style-window! hwnd)
+  (when (and dark-chrome-enabled? DwmSetWindowAttribute)
+    (with-handlers ([(λ (e) #t) void])
+      (when (zero? (bitwise-and (GetWindowLongW hwnd GWL_STYLE) WS_CHILD))
+        (define (set-attr! attr v)
+          (define p (malloc 4 'raw))
+          (ptr-set! p _uint32 v)
+          (DwmSetWindowAttribute hwnd attr p 4)
+          (free p))
+        (set-attr! 20 1)    ; DWMWA_USE_IMMERSIVE_DARK_MODE
+        (set-attr! 35 bg)   ; DWMWA_CAPTION_COLOR (Windows 11)
+        (set-attr! 36 fg))))) ; DWMWA_TEXT_COLOR

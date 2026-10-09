@@ -40,7 +40,11 @@
      ("\"icons.rkt\")"
       . "\"icons.rkt\"\n         \"dark-chrome.rkt\") ;; drracket-dark-windows patch")
      ("(define background-hbrush (let ([p (ptr-add #f (+ COLOR_BTNFACE 1))])"
-      . "(define background-hbrush (let ([p (or (dark-chrome-brush) (ptr-add #f (+ COLOR_BTNFACE 1)))]) ;; drracket-dark-windows patch"))
+      . "(define background-hbrush (let ([p (or (dark-chrome-brush) (ptr-add #f (+ COLOR_BTNFACE 1)))]) ;; drracket-dark-windows patch")
+     ("(define CreateWindowExW (make-CreateWindowEx register-hwnd!))"
+      . "(define CreateWindowExW (make-CreateWindowEx (lambda (hwnd) (register-hwnd! hwnd) (dark-chrome-style-window! hwnd)))) ;; drracket-dark-windows patch")
+     ("(subclass-control hwnd))))"
+      . "(subclass-control hwnd)\n                                                       (dark-chrome-style-control! hwnd)))) ;; drracket-dark-windows patch"))
     ("procs.rkt"
      ("\"theme.rkt\""
       . "\"theme.rkt\"\n         \"dark-chrome.rkt\" ;; drracket-dark-windows patch")

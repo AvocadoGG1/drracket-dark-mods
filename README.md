@@ -63,7 +63,7 @@ Restart DrRacket, then open **Edit > Preferences > Background Image**.
 | Image | Any PNG, JPEG, GIF or BMP file |
 | Opacity | 0 to 100%; 15 to 30% keeps code readable |
 | Placement | Fill (crop to cover), Fit, Bottom right, Center |
-| REPL | Also show the picture behind the interactions window |
+| REPL | Also show the picture behind the interactions window (off by default) |
 
 Changes apply immediately, with no restart needed.
 

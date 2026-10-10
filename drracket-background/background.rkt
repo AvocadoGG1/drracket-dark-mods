@@ -19,7 +19,8 @@
   (preferences:set-default 'drracket-background:image #f (λ (v) (or (not v) (string? v))))
   (preferences:set-default 'drracket-background:opacity 25 (λ (v) (and (exact-integer? v) (<= 0 v 100))))
   (preferences:set-default 'drracket-background:placement 'fill (λ (v) (memq v placements)))
-  (preferences:set-default 'drracket-background:in-repl? #t boolean?)
+  ;; off by default: the REPL is for reading output, and a picture behind it gets in the way
+  (preferences:set-default 'drracket-background:in-repl? #f boolean?)
   (for ([p '(drracket-background:image drracket-background:opacity
              drracket-background:placement drracket-background:in-repl?)])
     (preferences:add-callback p (λ (k v) (queue-callback settings-changed!))))
